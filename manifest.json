@@ -2870,7 +2870,7 @@
       "checksum": "b5bbe5ec71a8c4466580ad57b6cf39af"
     },
     "app.R": {
-      "checksum": "c3835b45a4b163941612a1c7402a9132"
+      "checksum": "5d9055173f2c3e05507d91e490e942ee"
     },
     "gitignore": {
       "checksum": "345e900d93b7210130361c673a5e1000"
@@ -2913,6 +2913,9 @@
     },
     "README.md": {
       "checksum": "d0cf696eb92c18654526a0110ae40618"
+    },
+    "run_app.R": {
+      "checksum": "c3835b45a4b163941612a1c7402a9132"
     }
   },
   "users": null
