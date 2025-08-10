@@ -1,191 +1,63 @@
-# Calcium Imaging Analysis App - Version 2.4
+# Calcium Imaging Analysis App
 
-A comprehensive R Shiny application for analyzing calcium imaging data with improved performance, modularity, and user experience.
+This Shiny application provides a comprehensive suite of tools for analyzing calcium imaging data. It is designed for both individual and group-level analysis, offering features for data preprocessing, metric calculation, statistical analysis, and visualization.
 
-## 🚀 Key Improvements
+## Features
 
-### 1. **Modular Architecture**
-- Separated 1600+ line monolithic file into organized modules
-- Clear separation of concerns with dedicated modules for:
-  - Data loading (`mod_data_loading.R`)
-  - Preprocessing (`mod_preprocessing.R`)
-  - Metrics calculation (`mod_metrics.R`)
-  - Visualization (`mod_visualization.R`)
-- Shared utilities and validation functions
+- **Group Comparison:** Upload and compare multiple experimental groups.
+- **Individual Analysis:** Perform in-depth analysis on single datasets.
+- **Data Preprocessing:** Includes baseline correction, normalization, smoothing, and detrending.
+- **Advanced Metrics:** Calculate over a dozen key calcium imaging metrics.
+- **Statistical Analysis:** Built-in tools for ANOVA, t-tests, and correlation analysis.
+- **Rich Visualizations:** Generate interactive and publication-ready plots.
 
-### 2. **Performance Optimizations**
-- **Vectorized calculations** for faster processing of large datasets
-- **Memory management** with cache clearing and garbage collection
-- **Progress indicators** for all long-running operations
-- **Chunk processing** option for very large datasets
-- **Parallel processing** support (optional)
+## How to Run the Application
 
-### 3. **Enhanced Error Handling**
-- Comprehensive input validation with actionable error messages
-- Edge case handling in metrics calculations
-- Graceful failure recovery in batch processing
+To run the application locally, you will need to have R and the necessary packages installed.
 
-### 4. **Bug Fixes**
-- Fixed FWHM calculation for signals that don't return to baseline
-- Improved baseline detection with adaptive window sizing
-- Better handling of non-responder cells
-- Corrected spike detection algorithm
+### 1. Clone the Repository
 
-### 5. **New Features**
-- **Batch processing** for multiple files
-- **Interactive visualizations** with plotly
-- **Spike detection** and analysis
-- **Session management** with auto-save
-- **Customizable settings** with persistence
-- **Memory usage monitoring**
-- **Help system** with documentation
+Clone this repository to your local machine:
 
-## 📁 Project Structure
-
-```
-calcium-app/
-├── app.R                    # Main application file
-├── R/
-│   ├── global.R            # Global configuration
-│   ├── modules/            # Shiny modules
-│   │   ├── mod_data_loading.R
-│   │   ├── mod_preprocessing.R
-│   │   ├── mod_metrics.R
-│   │   └── mod_visualization.R
-│   └── utils/              # Utility functions
-│       ├── calculations.R
-│       └── validation.R
-└── README.md
+```bash
+git clone https://github.com/samgillman/Calcium.git
+cd Calcium
 ```
 
-## 🔧 Installation
+### 2. Install Dependencies
 
-### Required R Packages
+The application requires several R packages to run. You can install them by running the following command in your R console:
 
-```r
-# Core packages
-install.packages(c(
-  "shiny", "shinydashboard", "shinyjs", "shinyWidgets",
-  "shinycssloaders", "DT", "shinyvalidate"
-))
-
-# Data manipulation
-install.packages(c(
-  "dplyr", "tidyr", "data.table", "readxl", "purrr"
-))
-
-# Visualization
-install.packages(c(
-  "ggplot2", "plotly", "corrplot", "cowplot", "patchwork",
-  "RColorBrewer", "scales", "colourpicker", "viridis", "pheatmap"
-))
-
-# Analysis
-install.packages(c(
-  "zoo", "latex2exp", "openxlsx", "pryr"
-))
+```R
+install.packages(c("shiny", "shinydashboard", "shinyjs", "shinyWidgets", "DT", "ggplot2", "dplyr", "tidyr", "data.table", "readxl", "purrr", "cowplot", "corrplot", "rlang", "RColorBrewer", "scales", "colourpicker", "patchwork", "latex2exp", "zoo", "shinyvalidate", "plotly", "pheatmap", "openxlsx", "pryr", "viridis"))
 ```
 
-## 🚦 Quick Start
+### 3. Launch the App
 
-1. **Clone or download** the repository
-2. **Install dependencies** (see above)
-3. **Run the app**:
-   ```r
-   shiny::runApp("app.R")
-   ```
-4. **Load demo data** to explore features
+Once the dependencies are installed, you can launch the app by running the following script in your R console from the project's root directory:
 
-## 📊 Data Format
-
-Your data should be structured as:
-- **Column 1**: Time values (numeric)
-- **Columns 2+**: Signal values for each cell/ROI
-- **File formats**: CSV, Excel (.xlsx/.xls), or TXT
-
-Example:
-```
-Time    Cell1   Cell2   Cell3
-0.0     1.00    1.02    0.98
-0.2     1.01    1.03    0.99
-0.4     1.05    1.08    1.02
-...
+```R
+source("run_app.R")
 ```
 
-## 🎯 Key Metrics Calculated
+Alternatively, you can run the following command in your terminal:
 
-- **Peak ΔF/F₀**: Maximum fluorescence change
-- **Time to Peak**: Time from stimulus to peak
-- **Rise Time**: 10-90% rise time
-- **Area Under Curve (AUC)**: Integrated response
-- **Half Width (HWHM)**: Response duration
-- **Signal-to-Noise Ratio (SNR)**: Signal quality
-- **Ca²⁺ Entry Rate**: Maximum rate of change
-- **Spike Detection**: Automated spike counting
+```bash
+Rscript run_app.R
+```
 
-## 💡 Usage Tips
+The application should now be running and accessible in your web browser.
 
-### Memory Management
-- Monitor memory usage in the sidebar
-- Click "Clear Cache" if memory usage exceeds 500MB
-- Enable chunk processing for datasets with >1000 cells
+## Project Structure
 
-### Batch Processing
-1. Navigate to "Batch Analysis" tab
-2. Select multiple files
-3. Choose to use current preprocessing settings
-4. Optionally enable auto-export
-5. Click "Run Batch Analysis"
+The project is organized as follows:
 
-### Performance Settings
-- Enable parallel processing for large datasets
-- Adjust chunk size based on available memory
-- Use vectorized calculations (automatic for >50 cells)
-
-## 🐛 Troubleshooting
-
-### High Memory Usage
-- Clear cache regularly
-- Process files in smaller batches
-- Reduce the number of cells analyzed simultaneously
-
-### Slow Performance
-- Enable parallel processing in Settings
-- Increase chunk size if memory allows
-- Close other applications
-
-### Import Errors
-- Ensure data is properly formatted
-- Check for non-numeric values in signal columns
-- Verify time column is monotonically increasing
-
-## 📈 Performance Benchmarks
-
-Tested on MacBook Pro (16GB RAM):
-- **100 cells, 1000 timepoints**: ~2 seconds
-- **500 cells, 1000 timepoints**: ~8 seconds (vectorized)
-- **1000 cells, 1000 timepoints**: ~15 seconds (parallel)
-
-## 🔄 Version History
-
-### v2.4 (Current)
-- Complete modularization
-- Performance optimizations
-- Memory management
-- Bug fixes and improvements
-
-### v2.3
-- Original monolithic version
-- Basic functionality
-
-## 📝 License
-
-This software is provided as-is for research purposes.
-
-## 🤝 Contributing
-
-Suggestions and improvements welcome! Please report issues or submit pull requests.
-
-## 📧 Contact
-
-For questions or support, please contact the development team.
+- `run_app.R`: The main script to launch the application.
+- `app_complete.R`: Defines the user interface (UI).
+- `app_complete_server.R`: Contains the server-side logic.
+- `R/`: A directory containing the core R code.
+  - `R/global.R`: Loads packages and defines global functions.
+  - `R/modules/`: Contains the modular components of the app.
+  - `R/utils/`: Contains utility and calculation functions.
+- `.gitignore`: Specifies files to be ignored by Git.
+- `README.md`: This file.
