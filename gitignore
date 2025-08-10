@@ -1,0 +1,17 @@
+# R specific
+.Rhistory
+.RData
+.Rproj.user
+.Renviron
+
+# Shiny specific
+rsconnect/
+manifest.json
+
+# Common files to ignore
+.DS_Store
+Thumbs.db
+
+# Dependencies (if you use renv)
+renv/
+renv.lock
