@@ -54,10 +54,15 @@ server <- function(input, output, session) {
   viz_module <- mod_visualization_server("ind_viz_module", preproc_module, metrics_module)
   tables_module <- mod_tables_server("ind_tables_module", data_module, metrics_module)
   guide_module <- mod_metric_guide_server("guide_module", data_module)
-  export_module <- mod_export_server("ind_export_module", reactive(values))
+  export_module <- mod_export_server(
+    "ind_export_module",
+    data_module = data_module,
+    metrics_module = metrics_module,
+    viz_module = viz_module
+  )
   
   # Advanced Analysis Modules  
-  stats_module <- mod_statistical_analysis_server("stats_module", reactive(values))
+  stats_module <- mod_statistical_analysis_server("stats_module", metrics_module)
   
   # ========== GROUP COMPARISON LOGIC ==========
   
