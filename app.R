@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
 
 # Posit Connect entrypoint for the Calcium Imaging Analysis app
-# Delegates to the complete app definition
+# Return a shiny.appobj constructed from the complete app file
 
-source("app_complete.R")
+shiny::shinyAppFile("app_complete.R")
