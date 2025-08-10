@@ -121,18 +121,21 @@ server <- function(input, output, session) {
   })
 
   output$status_files_loaded <- renderText({
-    paste0(if (length(rv$dts) == 0) "No files" else paste0(length(rv$dts), " file(s)"))
+    if (length(rv$dts) == 0) "No files" else paste0(length(rv$dts), " file(s)")
   })
   output$status_processing <- renderText({
-    if (is.null(preproc_module)) return("Not started")
-    "Awaiting user"
+    # preproc_module is a reactive returning processed list
+    if (length(rv$dts) == 0) return("Not started")
+    processed <- tryCatch({ preproc_module() }, error = function(...) NULL)
+    if (is.null(processed) || length(processed) == 0) "Awaiting user" else "Applied"
   })
   output$status_metrics <- renderText({
-    if (is.null(metrics_module)) return("Not calculated")
-    if (is.null(metrics_module$metrics()) || NROW(metrics_module$metrics()) == 0) "Not calculated" else "Calculated"
+    mets <- tryCatch({ metrics_module$metrics() }, error = function(...) NULL)
+    if (is.null(mets) || NROW(mets) == 0) "Not calculated" else "Calculated"
   })
   output$status_ready <- renderText({
-    if (length(rv$dts) == 0) "Awaiting data" else "Ready"
+    mets <- tryCatch({ metrics_module$metrics() }, error = function(...) NULL)
+    if (is.null(mets) || NROW(mets) == 0) "Awaiting data" else "Ready"
   })
 
   # Load demo data for group comparison
