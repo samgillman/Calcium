@@ -20,7 +20,6 @@ source("R/modules/mod_export.R")
 source("R/modules/mod_statistical_analysis.R")
 
 # Enable all features
-shinyjs::useShinyjs()
 enableBookmarking(store = "url")
 
 # Complete UI Definition
@@ -111,6 +110,7 @@ ui <- dashboardPage(
   ),
   
   dashboardBody(
+    shinyjs::useShinyjs(),
     # Custom CSS for complete styling
     tags$head(
       tags$style(HTML("
