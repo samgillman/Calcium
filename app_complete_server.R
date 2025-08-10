@@ -47,12 +47,13 @@ server <- function(input, output, session) {
   # ========== MODULE SERVERS ==========
   
   # Individual Analysis Modules
-  data_module <- mod_data_loading_server("ind_data_module", reactive(values))
-  preproc_module <- mod_preprocessing_server("ind_preprocess_module", reactive(values$uploaded_data))
-  metrics_module <- mod_metrics_server("ind_metrics_module", reactive(values$processed_data))
-  viz_module <- mod_visualization_server("ind_viz_module", reactive(values$processed_data))
-  tables_module <- mod_tables_server("ind_tables_module", reactive(values$metrics_data))
-  guide_module <- mod_metric_guide_server("guide_module", reactive(values$processed_data))
+  # Wire modules together so downstream modules receive the module return objects
+  data_module <- mod_data_loading_server("ind_data_module")
+  preproc_module <- mod_preprocessing_server("ind_preprocess_module", data_module)
+  metrics_module <- mod_metrics_server("ind_metrics_module", preproc_module)
+  viz_module <- mod_visualization_server("ind_viz_module", preproc_module, metrics_module)
+  tables_module <- mod_tables_server("ind_tables_module", data_module, metrics_module)
+  guide_module <- mod_metric_guide_server("guide_module", data_module)
   export_module <- mod_export_server("ind_export_module", reactive(values))
   
   # Advanced Analysis Modules  
