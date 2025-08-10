@@ -1284,13 +1284,27 @@ server <- function(input, output, session) {
   output$memory_usage <- renderPrint({
     # Get memory info
     mem_used <- pryr::mem_used()
-    
     cat("Memory used:", format(mem_used, units = "MB"), "\n")
     cat("Objects:", length(names(values)), "\n")
     
-    # Count data sizes
-    n_files <- length(values$uploaded_data)
-    n_cells <- sum(sapply(values$uploaded_data, function(x) ncol(x) - 1))
+    # Count data sizes robustly
+    uploaded <- values$uploaded_data
+    if (!is.list(uploaded) || length(uploaded) == 0) {
+      n_files <- 0
+      n_cells <- 0
+    } else {
+      n_files <- length(uploaded)
+      n_cells <- sum(vapply(uploaded, function(x) {
+        if (is.data.frame(x) || data.table::is.data.table(x)) {
+          max(ncol(x) - 1, 0)
+        } else if (is.list(x)) {
+          # Some loaders store a list of data.frames per group
+          sum(vapply(x, function(df) if (is.data.frame(df) || data.table::is.data.table(df)) max(ncol(df) - 1, 0) else 0, numeric(1)))
+        } else {
+          0
+        }
+      }, numeric(1)))
+    }
     
     cat("Files loaded:", n_files, "\n")
     cat("Total cells:", n_cells, "\n")
