@@ -495,159 +495,110 @@ mod_preprocessing_server <- function(id, data_module) {
   })
 }
 
-# Preprocessing functions
+# Preprocessing functions (robust versions)
 
 apply_normalization <- function(df, baseline_frames = 20, method = "mean", percentile = 10) {
-  time_col <- df$Time
   cell_cols <- setdiff(names(df), "Time")
-  
-  # Calculate baseline for each cell
-  baseline_idx <- min(baseline_frames, floor(nrow(df) * 0.1))
-  
   for (col in cell_cols) {
     signal <- df[[col]]
-    
-    # Calculate baseline
+    if (!is.numeric(signal) || all(is.na(signal))) next
+    baseline_idx <- min(baseline_frames, floor(nrow(df) * 0.1))
     baseline_signal <- signal[1:baseline_idx]
-    
-    if (method == "mean") {
-      baseline <- mean(baseline_signal, na.rm = TRUE)
-    } else if (method == "median") {
-      baseline <- median(baseline_signal, na.rm = TRUE)
-    } else if (method == "percentile") {
-      baseline <- quantile(baseline_signal, percentile/100, na.rm = TRUE)
-    }
-    
-    # Apply normalization
+    baseline <- switch(method,
+      "mean" = mean(baseline_signal, na.rm = TRUE),
+      "median" = median(baseline_signal, na.rm = TRUE),
+      "percentile" = quantile(baseline_signal, percentile / 100, na.rm = TRUE, names = FALSE)
+    )
     if (!is.na(baseline) && baseline != 0) {
       df[[col]] <- (signal - baseline) / baseline
     }
   }
-  
   df
 }
 
 apply_smoothing <- function(df, method = "ma", window = 5) {
   cell_cols <- setdiff(names(df), "Time")
-  
   for (col in cell_cols) {
     signal <- df[[col]]
-    
+    if (!is.numeric(signal) || all(is.na(signal))) next
+    if (window %% 2 == 0) window <- window + 1
     if (method == "ma") {
-      # Moving average
-      df[[col]] <- stats::filter(signal, rep(1/window, window), sides = 2)
+      df[[col]] <- as.numeric(stats::filter(signal, rep(1 / window, window), sides = 2))
     } else if (method == "gaussian") {
-      # Gaussian smoothing
       sigma <- window / 4
       kernel <- dnorm(seq(-window, window, 1), 0, sigma)
       kernel <- kernel / sum(kernel)
-      df[[col]] <- stats::filter(signal, kernel, sides = 2)
-    } else if (method == "sg") {
-      # Savitzky-Golay (simplified)
-      if (length(signal) > window) {
-        df[[col]] <- signal  # Placeholder - would use signal::sgolayfilt
-      }
+      df[[col]] <- as.numeric(stats::filter(signal, kernel, sides = 2))
     }
   }
-  
   df
 }
 
 apply_detrending <- function(df, method = "linear", poly_order = 2) {
   time_col <- df$Time
   cell_cols <- setdiff(names(df), "Time")
-  
   for (col in cell_cols) {
     signal <- df[[col]]
+    if (!is.numeric(signal) || all(is.na(signal))) next
     valid_idx <- !is.na(signal)
-    
     if (sum(valid_idx) > 10) {
       if (method == "linear") {
-        # Linear detrending
         fit <- lm(signal[valid_idx] ~ time_col[valid_idx])
-        trend <- predict(fit, data.frame(time_col = time_col))
+        trend <- predict(fit, newdata = data.frame(time_col = time_col))
         df[[col]] <- signal - trend
       } else if (method == "poly") {
-        # Polynomial detrending
         fit <- lm(signal[valid_idx] ~ poly(time_col[valid_idx], poly_order))
-        trend <- predict(fit, data.frame(time_col = time_col))
+        trend <- predict(fit, newdata = data.frame(time_col = time_col))
         df[[col]] <- signal - trend
-      } else if (method == "exp") {
-        # Exponential detrending (simplified)
-        df[[col]] <- signal  # Placeholder
       }
     }
   }
-  
   df
 }
 
 remove_artifacts <- function(df, threshold = 5, method = "interpolate") {
   cell_cols <- setdiff(names(df), "Time")
-  
   for (col in cell_cols) {
     signal <- df[[col]]
-    
-    # Detect artifacts
+    if (!is.numeric(signal) || all(is.na(signal))) next
     med <- median(signal, na.rm = TRUE)
     mad_val <- mad(signal, na.rm = TRUE)
+    if (is.na(mad_val) || mad_val == 0) next
     artifacts <- abs(signal - med) > threshold * mad_val
-    
     if (any(artifacts, na.rm = TRUE)) {
       if (method == "interpolate") {
-        # Linear interpolation
-        df[[col]][artifacts] <- NA
-        df[[col]] <- zoo::na.approx(df[[col]], na.rm = FALSE)
+        signal[artifacts] <- NA
+        df[[col]] <- zoo::na.approx(signal, na.rm = FALSE)
       } else if (method == "previous") {
-        # Use previous value
-        for (i in which(artifacts)) {
-          if (i > 1) df[[col]][i] <- df[[col]][i-1]
-        }
+        for (i in which(artifacts)) if (i > 1) df[[col]][i] <- df[[col]][i - 1]
       } else if (method == "na") {
-        # Set to NA
         df[[col]][artifacts] <- NA
       }
     }
   }
-  
   df
 }
 
 calculate_quality_metrics <- function(original_data, processed_data) {
-  # Calculate various quality metrics
   metrics <- list()
-  
-  # Get first dataset
   orig <- original_data[[1]]
   proc <- processed_data[[1]]
-  
   cell_cols <- setdiff(names(orig), "Time")
-  
-  # SNR improvement
-  orig_snr <- mean(sapply(cell_cols, function(col) {
-    signal <- orig[[col]]
-    baseline <- mean(signal[1:20], na.rm = TRUE)
-    noise <- sd(signal[1:20], na.rm = TRUE)
-    peak <- max(signal, na.rm = TRUE)
-    if (noise > 0) (peak - baseline) / noise else NA
-  }), na.rm = TRUE)
-  
-  proc_snr <- mean(sapply(cell_cols, function(col) {
-    signal <- proc[[col]]
-    baseline <- mean(signal[1:20], na.rm = TRUE)
-    noise <- sd(signal[1:20], na.rm = TRUE)
-    peak <- max(signal, na.rm = TRUE)
-    if (noise > 0) (peak - baseline) / noise else NA
-  }), na.rm = TRUE)
-  
+  calc_snr <- function(df) {
+    mean(sapply(cell_cols, function(col) {
+      signal <- df[[col]]
+      if (!is.numeric(signal) || all(is.na(signal))) return(NA)
+      baseline_idx <- 1:min(20, length(signal))
+      baseline <- mean(signal[baseline_idx], na.rm = TRUE)
+      noise <- sd(signal[baseline_idx], na.rm = TRUE)
+      peak <- max(signal, na.rm = TRUE)
+      if (!is.na(noise) && noise > 0) (peak - baseline) / noise else NA
+    }), na.rm = TRUE)
+  }
+  orig_snr <- calc_snr(orig)
+  proc_snr <- calc_snr(proc)
   metrics$SNR_Original <- orig_snr
   metrics$SNR_Processed <- proc_snr
-  metrics$SNR_Improvement <- (proc_snr - orig_snr) / orig_snr * 100
-  
-  # Data retention
-  orig_points <- sum(!is.na(unlist(orig[, ..cell_cols])))
-  proc_points <- sum(!is.na(unlist(proc[, ..cell_cols])))
-  metrics$Data_Retention <- proc_points / orig_points * 100
-  
+  metrics$SNR_Improvement <- if (!is.na(orig_snr) && orig_snr != 0) (proc_snr - orig_snr) / orig_snr * 100 else 0
   metrics
 }
