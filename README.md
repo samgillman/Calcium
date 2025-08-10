@@ -2,45 +2,16 @@
 
 A comprehensive R Shiny application for analyzing calcium imaging data with improved performance, modularity, and user experience.
 
-## 🚀 Key Improvements
+## Key Features
 
-### 1. **Modular Architecture**
-- Separated 1600+ line monolithic file into organized modules
-- Clear separation of concerns with dedicated modules for:
-  - Data loading (`mod_data_loading.R`)
-  - Preprocessing (`mod_preprocessing.R`)
-  - Metrics calculation (`mod_metrics.R`)
-  - Visualization (`mod_visualization.R`)
-- Shared utilities and validation functions
+- **Modular Architecture**: Organized into focused modules for data loading, preprocessing, metrics calculation, and visualization
+- **Performance Optimized**: Vectorized calculations, memory management, and progress indicators
+- **Enhanced Error Handling**: Comprehensive input validation and graceful failure recovery
+- **Interactive Visualizations**: Plotly-based charts with customization options
+- **Batch Processing**: Handle multiple files efficiently
+- **Memory Management**: Built-in cache clearing and memory monitoring
 
-### 2. **Performance Optimizations**
-- **Vectorized calculations** for faster processing of large datasets
-- **Memory management** with cache clearing and garbage collection
-- **Progress indicators** for all long-running operations
-- **Chunk processing** option for very large datasets
-- **Parallel processing** support (optional)
-
-### 3. **Enhanced Error Handling**
-- Comprehensive input validation with actionable error messages
-- Edge case handling in metrics calculations
-- Graceful failure recovery in batch processing
-
-### 4. **Bug Fixes**
-- Fixed FWHM calculation for signals that don't return to baseline
-- Improved baseline detection with adaptive window sizing
-- Better handling of non-responder cells
-- Corrected spike detection algorithm
-
-### 5. **New Features**
-- **Batch processing** for multiple files
-- **Interactive visualizations** with plotly
-- **Spike detection** and analysis
-- **Session management** with auto-save
-- **Customizable settings** with persistence
-- **Memory usage monitoring**
-- **Help system** with documentation
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 calcium-app/
@@ -55,10 +26,11 @@ calcium-app/
 │   └── utils/              # Utility functions
 │       ├── calculations.R
 │       └── validation.R
-└── README.md
+├── .gitignore              # Git ignore file
+└── README.md               # This file
 ```
 
-## 🔧 Installation
+## Installation
 
 ### Required R Packages
 
@@ -86,7 +58,7 @@ install.packages(c(
 ))
 ```
 
-## 🚦 Quick Start
+## Quick Start
 
 1. **Clone or download** the repository
 2. **Install dependencies** (see above)
@@ -94,9 +66,8 @@ install.packages(c(
    ```r
    shiny::runApp("app.R")
    ```
-4. **Load demo data** to explore features
 
-## 📊 Data Format
+## Data Format
 
 Your data should be structured as:
 - **Column 1**: Time values (numeric)
@@ -112,7 +83,7 @@ Time    Cell1   Cell2   Cell3
 ...
 ```
 
-## 🎯 Key Metrics Calculated
+## Key Metrics Calculated
 
 - **Peak ΔF/F₀**: Maximum fluorescence change
 - **Time to Peak**: Time from stimulus to peak
@@ -123,26 +94,19 @@ Time    Cell1   Cell2   Cell3
 - **Ca²⁺ Entry Rate**: Maximum rate of change
 - **Spike Detection**: Automated spike counting
 
-## 💡 Usage Tips
+## Usage
 
 ### Memory Management
 - Monitor memory usage in the sidebar
 - Click "Clear Cache" if memory usage exceeds 500MB
 - Enable chunk processing for datasets with >1000 cells
 
-### Batch Processing
-1. Navigate to "Batch Analysis" tab
-2. Select multiple files
-3. Choose to use current preprocessing settings
-4. Optionally enable auto-export
-5. Click "Run Batch Analysis"
-
 ### Performance Settings
 - Enable parallel processing for large datasets
 - Adjust chunk size based on available memory
 - Use vectorized calculations (automatic for >50 cells)
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### High Memory Usage
 - Clear cache regularly
@@ -159,14 +123,14 @@ Time    Cell1   Cell2   Cell3
 - Check for non-numeric values in signal columns
 - Verify time column is monotonically increasing
 
-## 📈 Performance Benchmarks
+## Performance Benchmarks
 
 Tested on MacBook Pro (16GB RAM):
 - **100 cells, 1000 timepoints**: ~2 seconds
 - **500 cells, 1000 timepoints**: ~8 seconds (vectorized)
 - **1000 cells, 1000 timepoints**: ~15 seconds (parallel)
 
-## 🔄 Version History
+## Version History
 
 ### v2.4 (Current)
 - Complete modularization
@@ -174,18 +138,10 @@ Tested on MacBook Pro (16GB RAM):
 - Memory management
 - Bug fixes and improvements
 
-### v2.3
-- Original monolithic version
-- Basic functionality
-
-## 📝 License
+## License
 
 This software is provided as-is for research purposes.
 
-## 🤝 Contributing
+## Contributing
 
 Suggestions and improvements welcome! Please report issues or submit pull requests.
-
-## 📧 Contact
-
-For questions or support, please contact the development team.
