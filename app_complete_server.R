@@ -57,8 +57,7 @@ server <- function(input, output, session) {
   export_module <- mod_export_server(
     "ind_export_module",
     data_module = data_module,
-    metrics_module = metrics_module,
-    viz_module = viz_module
+    metrics_module = metrics_module
   )
   
   # Advanced Analysis Modules  
@@ -97,6 +96,45 @@ server <- function(input, output, session) {
     })
   })
   
+  # ========== INDIVIDUAL: SUMMARY VALUE BOXES & STATUS (match monolithic) ==========
+  rv <- reactiveValues(dts = list())
+  observe({
+    # keep in sync with data module validated data
+    if (is.list(data_module$data())) {
+      rv$dts <- data_module$data()
+    } else {
+      rv$dts <- list()
+    }
+  })
+
+  output$vb_groups <- shinydashboard::renderValueBox({
+    g <- length(rv$dts)
+    shinydashboard::valueBox(value = g, subtitle = "Files loaded", icon = icon("layer-group"), color = "teal")
+  })
+  output$vb_cells <- shinydashboard::renderValueBox({
+    n <- if (length(rv$dts) == 0) 0 else sum(purrr::map_int(rv$dts, ~max(0, ncol(.x) - 1)))
+    shinydashboard::valueBox(value = n, subtitle = "Total cells", icon = icon("circle"), color = "purple")
+  })
+  output$vb_timepoints <- shinydashboard::renderValueBox({
+    tp <- if (length(rv$dts) == 0) 0 else sum(purrr::map_int(rv$dts, nrow))
+    shinydashboard::valueBox(value = tp, subtitle = "Total timepoints", icon = icon("clock"), color = "olive")
+  })
+
+  output$status_files_loaded <- renderText({
+    paste0(if (length(rv$dts) == 0) "No files" else paste0(length(rv$dts), " file(s)"))
+  })
+  output$status_processing <- renderText({
+    if (is.null(preproc_module)) return("Not started")
+    "Awaiting user"
+  })
+  output$status_metrics <- renderText({
+    if (is.null(metrics_module)) return("Not calculated")
+    if (is.null(metrics_module$metrics()) || NROW(metrics_module$metrics()) == 0) "Not calculated" else "Calculated"
+  })
+  output$status_ready <- renderText({
+    if (length(rv$dts) == 0) "Awaiting data" else "Ready"
+  })
+
   # Load demo data for group comparison
   observeEvent(input$gc_demo_btn, {
     withProgress(message = "Generating demo data...", {

@@ -49,19 +49,10 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       id = "sidebar",
+      selected = "load",
       
-      # GROUP COMPARISON SECTION
-      menuItem("Group Comparison", icon = icon("layer-group"), startExpanded = TRUE,
-        menuSubItem("Load Groups", tabName = "gc_load", icon = icon("upload")),
-        menuSubItem("Time Course", tabName = "gc_time", icon = icon("chart-line")),
-        menuSubItem("Metrics", tabName = "gc_metrics", icon = icon("chart-bar")),
-        menuSubItem("Heatmap", tabName = "gc_heatmap", icon = icon("th")),
-        menuSubItem("Tables", tabName = "gc_tables", icon = icon("table")),
-        menuSubItem("Export", tabName = "gc_export", icon = icon("download"))
-      ),
-      
-      # INDIVIDUAL ANALYSIS SECTION
-      menuItem("Individual Analysis", icon = icon("microscope"),
+      # INDIVIDUAL ANALYSIS SECTION (first, default like monolithic app)
+      menuItem("Individual Analysis", icon = icon("microscope"), startExpanded = TRUE,
         menuSubItem("Load Data", tabName = "load", icon = icon("file-upload")),
         menuSubItem("Pre-processing", tabName = "preproc", icon = icon("filter")),
         menuSubItem("Time Course", tabName = "time", icon = icon("chart-line")),
@@ -70,6 +61,16 @@ ui <- dashboardPage(
         menuSubItem("Tables", tabName = "tables", icon = icon("table")),
         menuSubItem("Metric Guide", tabName = "guide", icon = icon("book")),
         menuSubItem("Export", tabName = "export", icon = icon("download"))
+      ),
+
+      # GROUP COMPARISON SECTION (second, like monolithic app)
+      menuItem("Group Comparison", icon = icon("layer-group"), startExpanded = TRUE,
+        menuSubItem("Load", tabName = "gc_load", icon = icon("database")),
+        menuSubItem("Time Course", tabName = "gc_time", icon = icon("chart-line")),
+        menuSubItem("Metrics", tabName = "gc_metrics", icon = icon("chart-bar")),
+        menuSubItem("Heatmap", tabName = "gc_heatmap", icon = icon("th")),
+        menuSubItem("Tables", tabName = "gc_tables", icon = icon("table")),
+        menuSubItem("Export", tabName = "gc_export", icon = icon("download"))
       ),
       
       # ADVANCED FEATURES
@@ -688,10 +689,29 @@ ui <- dashboardPage(
       
       # ========== INDIVIDUAL ANALYSIS TABS ==========
       
-      # Individual Load Tab
+      # Individual Load Tab (match monolithic: add At a glance + Processing Status)
       tabItem(
         tabName = "load",
-        mod_data_loading_ui("ind_data_module")
+        fluidRow(
+          column(8, mod_data_loading_ui("ind_data_module")),
+          column(4,
+            box(title = "At a glance", status = "info", solidHeader = TRUE, width = 12,
+                valueBoxOutput("vb_groups", width = 12),
+                valueBoxOutput("vb_cells", width = 12),
+                valueBoxOutput("vb_timepoints", width = 12)
+            ),
+            box(title = "Processing Status", status = "info", solidHeader = TRUE, width = 12,
+              div(id = "status_panel",
+                  fluidRow(
+                    column(3, icon("file-import", class = "fa-2x"), h4("Files Loaded"), textOutput("status_files_loaded")),
+                    column(3, icon("check-circle", class = "fa-2x"), h4("Processing"), textOutput("status_processing")),
+                    column(3, icon("calculator", class = "fa-2x"), h4("Metrics"), textOutput("status_metrics")),
+                    column(3, icon("chart-line", class = "fa-2x"), h4("Ready"), textOutput("status_ready"))
+                  )
+              )
+            )
+          )
+        )
       ),
       
       # Individual Preprocessing Tab  
